@@ -1,68 +1,53 @@
-Iniciar la aplicación
-Requisitos: Node.js 22.12+ o 24, XAMPP (con PHP 8.2+ y MySQL 8 o MariaDB 10.4+).
+# PharmaFlow universal
 
-El modo predeterminado es demostración local:
-permite probar todos los flujos sin arrancar PHP o MySQL. Los datos ficticios,
-la sesión, las preferencias y el carrito se guardan usando AsyncStorage 3
-(IndexedDB en web). No se guardan contraseñas en el navegador.
+Frontend nuevo en React Native + Expo. El frontend anterior y PHP/MySQL se conservan sin cambios.
 
+## Diseño
 
+La referencia visual es `../frontend/src` y `../pantallas/design.md`, junto con las capturas de dashboard, inventario y auditoría. El tema inicial es claro. Se usan Inter y JetBrains Mono incluidas localmente; no requieren descargar fuentes al iniciar.
 
-Rol,Correo,Contraseña
-Cliente,cliente@correo.com,Pharma123!
-Empleado,empleado@farmacia.com,Pharma123!
+- Sidebar de 256 px, 220 px en escritorio compacto y menú lateral en celular.
+- Cabecera de 72 px (64 px en móvil), selector de sede, búsqueda, avisos y perfil.
+- Dashboard: cuatro indicadores, cola de auditoría en tabla y actividad a la derecha.
+- Inventario: filtros compactos, ocho columnas, paginación y modales de movimientos.
+- Auditoría: visor oscuro y panel de decisión en dos columnas; apilados en móvil.
+- Catálogo, reservas, configuración y acceso mantienen la composición del frontend original.
 
+## Arranque
 
+```powershell
+cd frontend-native
+npm ci
+npx expo start
+```
 
-El cliente consulta el catálogo, crea reservas, ve sus propios pedidos y puede
-cancelarlos antes de la entrega. El empleado gestiona todas las reservas, audita
-recetas, confirma retiros, ajusta/importa/traslada existencias, registra
-medicamentos y configura sedes.
+Abre la web en http://localhost:8081. En iPhone usa Expo Go y escanea el QR de Metro. PC y teléfono deben estar en la misma red Wi-Fi.
 
-El dominio exacto @farmacia.com es obligatorio para empleados, además del rol
-provisionado en la base de datos. Escribir ese dominio no concede el rol. El
-registro público de la API crea únicamente clientes y rechaza correos de empleados.
+La IP usada durante el desarrollo es 192.168.2.123. Si cambia, actualiza `.env` y reinicia Expo. Las variables EXPO_PUBLIC son configuración pública, nunca secretos.
 
-Conectar PHP y MySQL usando XAMPP
+Para el backend, desde la raíz del proyecto:
 
-1. Base de datos Vía phpMyAdmin
-En XAMPP, dale "Start" a MySQL y Apache.
-Entra a http://localhost/phpmyadmin en tu navegador.
-Crea una base de datos nueva (ej. pharmaflow).
-Ve a la pestaña Importar, selecciona tu archivo database/init.sql y dale a continuar.
-2. Backend Vía consola de PHP
-Tienes que copiar la carpeta entera del proyecto para copiarla en la ruta "C:\\xampp\\htdocs"
-3. Frontend
-Abre una nueva ventana de terminal, entra a la carpeta del frontend y levanta la aplicación:
-cd frontend
-npm install
-npm run dev
+```powershell
+$env:APP_ORIGIN='http://localhost:8081'
+& C:\xampp\php\php.exe -S 0.0.0.0:8082 -t backend backend/router.php
+```
 
-Abre http://127.0.0.1:5173 en tu navegador.
+MySQL debe estar activo en XAMPP. La app usa `http://192.168.2.123:8082/api`. Para navegar desde Safari con esta API, el proceso PHP debe tener APP_ORIGIN igual a http://192.168.2.123:8081; el acceso de Expo Go nativo no depende de CORS.
 
-Funcionalidades
-Panel con métricas calculadas, cola de revisión, actividad y reporte CSV.
+## Datos
 
-Inventario por lote, sede, categoría, estado y requisito. Paginación,
-vencimientos, ajustes con motivo, transferencias atómicas y alta de medicamentos.
+El valor predeterminado configurado en `.env` es API PHP/MySQL. Para pruebas aisladas, establece `EXPO_PUBLIC_DATA_MODE=demo` y reinicia Expo. El modo demo conserva los datos y carrito localmente, por usuario; no modifica MySQL.
 
-Importación CSV con plantilla id,quantity,minimum, hasta 500 filas.
-Los archivos se validan y se confirma antes de reemplazar conteos.
+Usuarios de demostración: cliente@correo.com / empleado@farmacia.com, contraseña Pharma123!.
 
-Reserva con carrito local y receta JPG/PNG/WebP de hasta 2 MB para productos Rx.
-Las unidades se reservan al guardar; un carrito no bloquea existencias.
+Los tokens móviles se guardan en SecureStore. Preferencias, carrito y datos demo usan AsyncStorage. Las recetas se convierten a JPEG y se valida el límite de 2 MB; CSV y comprobantes se descargan en web o se comparten en móvil.
 
-Auditoría manual con zoom, arrastre, giro, contraste y registro del dictamen.
-Aprobar habilita el retiro; rechazar o cancelar libera las unidades una sola vez.
+## Límites de validación
 
-Despacho con código de retiro, comprobante descargable y validación de estado.
+Las pruebas del agente se realizan en navegador. La captura de cámara, permisos iOS, selección de archivos, compartir y almacenamiento nativo requieren validación manual en iPhone. El contraste de imagen del visor está disponible únicamente en web; zoom, arrastre y giro comparten componentes nativos.
 
-Confirmaciones para cambios, cancelaciones, dictámenes y reinicio local.
+La auditoría de npm detecta 23 avisos transitivos de herramientas del SDK seleccionado. `npm audit fix` no los elimina; la corrección forzada propone una versión antigua e incompatible de Expo y no se aplica. Las versiones nativas se verifican con `npx expo install --check`.
 
-Navegación adaptable a móviles, controles etiquetados, foco visible y ventanas
-con manejo de teclado. Fuentes e iconos incluidos sin servicios externos.
+## Evidencia
 
-El sistema no incorpora OCR, firmas digitales, sensores, validación de registros
-médicos ni verificación normativa externa. Estos servicios no se presentan como
-activos. La receta incluida es un documento de ejemplo sin validez clínica.
-
+Las capturas verificadas de la interfaz se guardan en `evidence/`. La compilación web se genera con `npm run export:web`.
