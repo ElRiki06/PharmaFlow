@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="1040" viewBox="0 0 820 1040">
+<rect width="820" height="1040" fill="#e5e1d6"/><rect x="65" y="46" width="690" height="948" rx="3" fill="#fffef9" stroke="#c7c3b7"/>
+<g fill="#334c6b" font-family="Georgia,serif"><path d="M112 105h34M129 88v34" stroke="#0369a1" stroke-width="6"/>
+<text x="173" y="112" font-size="28" font-weight="bold">CLÍNICA SANTA MÓNICA</text><text x="173" y="139" font-size="15">San Salvador · Documento de demostración</text><path d="M110 169h600" stroke="#334c6b"/>
+<text x="410" y="218" font-size="26" text-anchor="middle" font-weight="bold">RECETA MÉDICA</text>
+<text x="110" y="275" font-size="18">Paciente: Elena Morales Ramos</text><text x="110" y="312" font-size="18">Documento: 02849102-4</text><text x="110" y="349" font-size="18">Fecha: 09 de octubre de 2026</text>
+<path d="M110 375h600" stroke="#b8bdc5"/>
+<text x="110" y="430" font-size="24" font-style="italic">Rx</text><text x="160" y="430" font-size="23">Amoxicilina 500mg</text><text x="160" y="469" font-size="18">Presentación: cápsulas · Cantidad: 2 cajas</text><text x="160" y="502" font-size="18">Indicaciones: verificar con el médico prescriptor.</text>
+<text x="110" y="568" font-size="24" font-style="italic">Rx</text><text x="160" y="568" font-size="23">Clonazepam 2mg</text><text x="160" y="607" font-size="18">Presentación: tabletas · Cantidad: 1 frasco</text><text x="160" y="640" font-size="18">Medicamento controlado · Requiere auditoría.</text>
+<text x="110" y="734" font-size="20">Dr. Alejandro Vargas C.</text><text x="110" y="766" font-size="18">Cédula profesional: 7894512</text><text x="115" y="827" font-size="29" font-style="italic">A. Vargas C.</text><path d="M110 843h240" stroke="#334c6b"/><text x="110" y="872" font-size="16">Firma de ejemplo</text>
+<circle cx="587" cy="810" r="67" stroke="#7486a2" stroke-width="2" fill="none"/><circle cx="587" cy="810" r="57" stroke="#7486a2" fill="none"/><text x="587" y="801" text-anchor="middle" font-size="14">SANTA MÓNICA</text><text x="587" y="828" text-anchor="middle" font-size="15">DEMOSTRACIÓN</text>
+<text x="410" y="940" text-anchor="middle" font-size="14" fill="#7b8797">Datos ficticios · Sin validez clínica ni legal</text></g></svg>
