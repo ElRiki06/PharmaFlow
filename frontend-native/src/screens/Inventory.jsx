@@ -521,8 +521,8 @@ export default function Inventory({ initialQuery = "" }) {
     {
       key: "drug",
       label: "Medicamento /\nPrincipio activo",
-      width: 190,
-      flex: 1.4,
+      width: 200,
+      flex: 1.5,
     },
     { key: "lot", label: "Código ATC / Lote", width: 116 },
     { key: "category", label: "Categoría /\nRequisito", width: 122 },
@@ -530,7 +530,7 @@ export default function Inventory({ initialQuery = "" }) {
     { key: "quantity", label: "Stock físico", width: 88, align: "right" },
     { key: "minimum", label: "Umbral mínimo", width: 86, align: "right" },
     { key: "state", label: "Estado", width: 104, align: "center" },
-    { key: "actions", label: "Acciones rápidas", width: 148 },
+    { key: "actions", label: "Acciones rápidas", width: 180 },
   ];
   function cell(s, column) {
     const mono = { ...text, fontFamily: fonts.mono, fontSize: 10 };
@@ -675,13 +675,13 @@ export default function Inventory({ initialQuery = "" }) {
         );
       default:
         return (
-          <View style={{ flexDirection: "row", gap: 4 }}>
+          <View style={{ flexDirection: "row", gap:12}}>
             <Button
               title="+/- Ajustar"
               size="small"
               disabled={busy}
               tone="secondary"
-              onPress={() => setDialog({ type: "adjust", row: s })}
+              onPress={() => setDialog({ type: "adjust", row: s, })}
             />
             <Button
               title="Transferir"

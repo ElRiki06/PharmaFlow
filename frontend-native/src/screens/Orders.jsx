@@ -1,8 +1,14 @@
 import { useEffect, useState } from "react";
-import { Pressable, Text, View, useWindowDimensions } from "react-native";
+import {
+  Platform,
+  Pressable,
+  Text,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import { useApp } from "../lib/context.js";
 import { age, canAccess, money, total } from "../lib/domain.js";
-import { download } from "../lib/files.js";
+import * as print from "expo-print";
 import {
   Badge,
   Button,
@@ -70,15 +76,255 @@ export default function Orders({ navigate, initialId, initialQuery = "" }) {
     data.drugs.find((d) => d.id === i.drugId)?.name || "Medicamento";
   async function receipt(o) {
     try {
-      await download(
-        `pharmaflow-orden-${o.id}.txt`,
-        `PharmaFlow · Comprobante de reserva\nOrden #ORD-${o.id}\nPaciente: ${o.patient}\nSede: ${branchName(o)}\nEstado: ${statuses[o.status][0]}\n${o.items.map((i) => `${i.quantity} x ${drugName(i)} · ${money(i.price * i.quantity)}`).join("\n")}\nTotal: ${money(total(o))}\nCódigo de retiro: ${o.pickupCode}\nPresenta tu documento de identidad al retirar.`,
-        "text/plain;charset=utf-8",
-      );
-    } catch (e) {
-      notify(e.message, "error");
-    }
+      // Escapa los datos de la orden para insertarlos como texto seguro en el HTML.
+      const escapeHtml = (value) =>
+        String(value ?? "").replace(/[&<>"']/g, (char) => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        })[char]);
+
+      const itemsHtml = o.items
+        .map(
+          (item) => `
+      <tr>
+        <td>${escapeHtml(drugName(item))}</td>
+        <td class="center">${escapeHtml(item.quantity)}</td>
+        <td class="right">${escapeHtml(money(item.price))}</td>
+        <td class="right">${escapeHtml(money(item.price * item.quantity))}</td>
+      </tr>
+    `,
+        )
+        .join("");
+
+      const fecha = new Date(o.createdAt).toLocaleString("es-SV", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      });
+      // Esta plantilla se comparte entre el PDF web y la impresión nativa para mantener el mismo diseño.
+      const html = `
+  <!DOCTYPE html>
+  <html lang="es">
+    <head>
+      <meta charset="UTF-8" />
+      <style>
+        * { box-sizing: border-box; }
+        @page { size: A4; margin: 12mm; }
+        body {
+          font-family: Arial, Helvetica, sans-serif;
+          color: #183238;
+          margin: 0;
+          padding: 0;
+          background: #eef4f3;
+        }
+        .receipt {
+          max-width: 760px;
+          margin: 0 auto;
+          padding: 28px;
+          background: #fff;
+          border: 1px solid #dce7e5;
+        }
+        header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 20px;
+          padding: 22px 24px;
+          margin-bottom: 22px;
+          color: #fff;
+          background: #075c63;
+          border-bottom: 4px solid #75c8ac;
+        }
+        .brand { margin: 0 0 5px; font-size: 25px; font-weight: 700; }
+        .header-copy { color: #d7eeea; font-size: 12px; margin: 0; }
+        .order-ref { text-align: right; font-size: 13px; font-weight: 700; }
+        .order-date { color: #d7eeea; font-size: 11px; margin-top: 6px; }
+        h2 { color: #075c63; font-size: 14px; margin: 24px 0 10px; }
+        p { margin: 0; }
+        .muted { color: #64777a; font-size: 11px; }
+        .status {
+          display: inline-block;
+          margin-top: 12px;
+          padding: 6px 10px;
+          color: #075c63;
+          background: #e5f4ee;
+          border: 1px solid #b5dfcf;
+          border-radius: 14px;
+          font-size: 10px;
+          font-weight: 700;
+          text-transform: uppercase;
+          white-space: nowrap;
+        }
+        .details {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 9px;
+        }
+        .detail {
+          min-height: 54px;
+          padding: 10px 12px;
+          background: #f5f8f7;
+          border: 1px solid #e1eae8;
+          border-radius: 4px;
+        }
+        .label {
+          display: block;
+          margin-bottom: 5px;
+          color: #64777a;
+          font-size: 9px;
+          font-weight: 700;
+          text-transform: uppercase;
+        }
+        .value { color: #183238; font-size: 12px; font-weight: 600; }
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        th, td {
+          border-bottom: 1px solid #e2eae8;
+          padding: 11px 9px;
+          font-size: 11px;
+          text-align: left;
+        }
+        th {
+          color: #fff;
+          background: #287b78;
+          font-size: 9px;
+          font-weight: 700;
+          text-transform: uppercase;
+        }
+        tbody tr:nth-child(even) { background: #f5f8f7; }
+        .center { text-align: center; }
+        .right { text-align: right; }
+        .total {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin: 14px 0 0 auto;
+          max-width: 280px;
+          padding: 13px 15px;
+          color: #fff;
+          background: #183238;
+          border-radius: 4px;
+        }
+        .total-label { color: #d7eeea; font-size: 11px; }
+        .total-value { font-size: 17px; font-weight: 700; }
+        .pickup {
+          margin-top: 20px;
+          padding: 16px;
+          text-align: center;
+          background: #eff7f3;
+          border: 1px solid #c8e5d7;
+          border-radius: 4px;
+        }
+        .pickup .label { margin-bottom: 7px; }
+        .code { color: #075c63; font-size: 23px; font-weight: 700; }
+        .pickup-note { margin-top: 6px; }
+        footer {
+          border-top: 1px solid #dce7e5;
+          margin-top: 24px;
+          padding-top: 12px;
+          text-align: center;
+        }
+        @media (max-width: 520px) {
+          .receipt { padding: 14px; }
+          header { padding: 16px; }
+          .details { grid-template-columns: 1fr; }
+          th, td { padding: 9px 5px; font-size: 10px; }
+        }
+      </style>
+    </head>
+    <body>
+      <main class="receipt">
+        <header>
+          <div>
+            <p class="brand">PharmaFlow</p>
+            <p class="header-copy">Comprobante de reserva</p>
+            <strong class="status">${escapeHtml(statuses[o.status][0])}</strong>
+          </div>
+          <div class="order-ref">
+            #ORD-${escapeHtml(o.id)}
+            <p class="order-date">${escapeHtml(fecha)}</p>
+          </div>
+        </header>
+
+        <section class="details">
+          <div class="detail">
+            <p class="label">Orden</p>
+            <p class="value">#ORD-${escapeHtml(o.id)}</p>
+          </div>
+          <div class="detail">
+            <p class="label">Paciente</p>
+            <p class="value">${escapeHtml(o.patient)}</p>
+          </div>
+          <div class="detail">
+            <p class="label">Documento</p>
+            <p class="value">${escapeHtml(o.dui || "Por verificar")}</p>
+          </div>
+          <div class="detail">
+            <p class="label">Sede</p>
+            <p class="value">${escapeHtml(branchName(o) || "No especificada")}</p>
+          </div>
+        </section>
+
+        <h2>Medicamentos</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th class="center">Cant.</th>
+              <th class="right">Precio</th>
+              <th class="right">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>${itemsHtml}</tbody>
+        </table>
+
+        <section class="total">
+          <span class="total-label">Total de la reserva</span>
+          <span class="total-value">${escapeHtml(money(total(o)))}</span>
+        </section>
+
+        ${
+          o.pickupCode
+            ? `<section class="pickup">
+                 <p class="label">Código de retiro</p>
+                 <p class="code">${escapeHtml(o.pickupCode)}</p>
+                 <p class="muted pickup-note">Presenta este código y tu documento en la sede.</p>
+               </section>`
+            : ""
+        }
+
+        <footer class="muted">Gracias por usar PharmaFlow.</footer>
+      </main>
+    </body>
+  </html>
+`;
+        if (Platform.OS === "web") {
+          // Convierte la plantilla existente en un PDF descargable, sin abrir el diálogo de impresión.
+          const { default: html2pdf } = await import("html2pdf.js");
+          await html2pdf()
+            .set({
+              filename: `comprobante-orden-${o.id}.pdf`,
+              margin: 10,
+              image: { type: "jpeg", quality: 0.98 },
+              html2canvas: { scale: 2, useCORS: true },
+              jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+            })
+            .from(html)
+            .save();
+          return;
+        }
+
+        // En móvil se usa el diálogo nativo para evitar compartir una URI temporal con permisos limitados.
+        await print.printAsync({ html });
+      } catch (error) {
+        notify(
+          error instanceof Error ? error.message : "No se pudo generar el PDF.",
+          "error",
+        );
+      }
   }
+
   return (
     <View style={{ gap: 16 }}>
       <PageHead
