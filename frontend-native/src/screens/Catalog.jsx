@@ -140,7 +140,7 @@ export default function Catalog({ navigate, initialQuery = "" }) {
   }
   async function attach() {
     try {
-      const next = await pickImage();
+      const next = await pickImage(true);
       if (next) setImage(next);
     } catch (e) {
       notify(e.message, "error");
