@@ -75,7 +75,7 @@ export default function Shell({ page, navigate, children }) {
           <Image
             source={require("../../assets/logo.png")}
             resizeMode="contain"
-            style={{ width: 124, height: 32 }}
+            style={{ width: 80, height: 32 }}
           />
           <View style={{ flex: 1 }}>
             <Text style={{ ...text, fontFamily: fonts.semibold, fontSize: 12 }}>
