@@ -138,7 +138,7 @@ export default function Catalog({ navigate, initialQuery = "" }) {
       notify(e.message, "error");
     }
   }
-  //funcionamiento de la camara para adjuntar receta
+  
   async function attach() {
     try {
       const next = await pickImage(true);
